@@ -1,4 +1,4 @@
-# Quasimorph FloatingCombatText
+# Quasimorph Floating Combat Text
 
 ![thumbnail icon](media/thumbnail.png)
 
