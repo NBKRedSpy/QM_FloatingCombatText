@@ -1,5 +1,8 @@
-﻿using System.IO;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Reflection;
+using System.Text;
 using HarmonyLib;
 using MGSC;
 using TMPro;
@@ -156,8 +159,51 @@ namespace FloatingCombatText
             var offsetY = Random.value * 2 * Plugin.Config.WoundRandomOffsetY - Plugin.Config.WoundRandomOffsetY + Plugin.Config.WoundPositionY;
             var offsetZ = Plugin.Config.WoundPositionZ;
 
-            var woundName = Localization.Get("wound." + bodyPartWound.WoundId + ".name");
+
+            string woundName = GetWoundText(bodyPartWound);
+
             Plugin.CreateFloatingText(__instance, woundName, Plugin.Config.WoundFontSize, Plugin.Config.WoundDuration, Plugin.Config.WoundFloatSpeed, new Color(0.8f, 0.0f, 0f), new Color(0.3f, 0.0f, 0.0f), offsetX, offsetY, offsetZ);
+        }
+
+        /// <summary>
+        /// Get the localized text for the wound.
+        /// Adapted from MGSC.TooltipFactory.BuildBodyPartWoundTooltip(MGSC.BodyPartWound, MGSC.EffectsController)
+        /// </summary>
+        /// <param name="bodyPartWound"></param>
+        /// <returns></returns>
+        private static string GetWoundText(BodyPartWound bodyPartWound)
+        {
+            ItemPropertyType dmgType = ParseHelper.GetDmgType(bodyPartWound.DmgType);
+
+            BodyPartWound item = bodyPartWound;     //Keeping to match the game's code this is from.
+
+            StringBuilder sb = new StringBuilder();
+
+            foreach (WoundEffect fixableWoundEffect in item.GetFixableWoundEffects())
+            {
+                string value = string.Empty;
+                if (!item.IsFixated && fixableWoundEffect != null)
+                {
+                    string text = FormatHelper.FormatValue(fixableWoundEffect.ViewValue, fixableWoundEffect.ShowValueFormat);
+                    string text2 = Localization.Get("woundeffect." + fixableWoundEffect.EffectId + ".short");
+                    value = text + " " + text2;
+                }
+                //Color color = (item.IsFixated ? Colors.Yellow : Colors.LightRed);
+                string natureType = Data.WoundSlots.GetRecord(item.WoundSlotId).NatureType;
+                string key = "wound." + item.SlotPositionType + "." + item.DmgType + "." + natureType + ".name";
+                                if (item.IsAmputation)
+                {
+                    key = "wound.amputation." + item.SlotPositionType + "." + item.DmgType + "." + natureType + ".name";
+                }
+                else if (item.IsMinor)
+                {
+                    key = "wound.minor." + item.DmgType + "." + natureType + ".name";
+                }
+
+                sb.AppendLine(Localization.Get(key));
+            }
+
+            return sb.ToString().TrimEnd('\r', '\n');
         }
     }
 }
