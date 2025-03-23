@@ -177,33 +177,25 @@ namespace FloatingCombatText
 
             BodyPartWound item = bodyPartWound;     //Keeping to match the game's code this is from.
 
-            StringBuilder sb = new StringBuilder();
+            string natureType = Data.WoundSlots.GetRecord(item.WoundSlotId).NatureType;
 
-            foreach (WoundEffect fixableWoundEffect in item.GetFixableWoundEffects())
+            string key;
+
+            if (item.IsAmputation)
             {
-                string value = string.Empty;
-                if (!item.IsFixated && fixableWoundEffect != null)
-                {
-                    string text = FormatHelper.FormatValue(fixableWoundEffect.ViewValue, fixableWoundEffect.ShowValueFormat);
-                    string text2 = Localization.Get("woundeffect." + fixableWoundEffect.EffectId + ".short");
-                    value = text + " " + text2;
-                }
-                //Color color = (item.IsFixated ? Colors.Yellow : Colors.LightRed);
-                string natureType = Data.WoundSlots.GetRecord(item.WoundSlotId).NatureType;
-                string key = "wound." + item.SlotPositionType + "." + item.DmgType + "." + natureType + ".name";
-                                if (item.IsAmputation)
-                {
-                    key = "wound.amputation." + item.SlotPositionType + "." + item.DmgType + "." + natureType + ".name";
-                }
-                else if (item.IsMinor)
-                {
-                    key = "wound.minor." + item.DmgType + "." + natureType + ".name";
-                }
-
-                sb.AppendLine(Localization.Get(key));
+                key = "wound.amputation." + item.SlotPositionType + "." + item.DmgType + "." + natureType + ".name";
+            }
+            else if (item.IsMinor)
+            {
+                key = "wound.minor." + item.DmgType + "." + natureType + ".name";
+            }
+            else
+            {
+                key = "wound." + item.SlotPositionType + "." + item.DmgType + "." + natureType + ".name";
             }
 
-            return sb.ToString().TrimEnd('\r', '\n');
+            return Localization.Get(key);
+
         }
     }
 }
