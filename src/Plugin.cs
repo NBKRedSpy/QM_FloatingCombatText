@@ -187,7 +187,7 @@ namespace FloatingCombatText
             }
             else if (item.IsMinor)
             {
-                damageKey = "wound.minor." + dmgType + "." + natureType + ".name";
+                damageKey = $"wound.minor.{dmgType}.{natureType}.name";
             }
             else
             {
