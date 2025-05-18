@@ -173,29 +173,28 @@ namespace FloatingCombatText
         /// <returns></returns>
         private static string GetWoundText(BodyPartWound bodyPartWound)
         {
-            ItemPropertyType dmgType = ParseHelper.GetDmgType(bodyPartWound.DmgType);
-
             BodyPartWound item = bodyPartWound;     //Keeping to match the game's code this is from.
 
+            string dmgType = item.DmgType;
             string natureType = Data.WoundSlots.GetRecord(item.WoundSlotId).NatureType;
 
-            string key;
+            string locationText = Localization.Get($"woundslot.{item.WoundSlotId}.name");
+            string damageKey;
 
             if (item.IsAmputation)
             {
-                key = "wound.amputation." + item.SlotPositionType + "." + item.DmgType + "." + natureType + ".name";
+                damageKey = "woundtype.amputated";
             }
             else if (item.IsMinor)
             {
-                key = "wound.minor." + item.DmgType + "." + natureType + ".name";
+                damageKey = "wound.minor." + dmgType + "." + natureType + ".name";
             }
             else
             {
-                key = "wound." + item.SlotPositionType + "." + item.DmgType + "." + natureType + ".name";
+                damageKey = $"wound.{dmgType}.{natureType}.name";
             }
 
-            return Localization.Get(key);
-
+            return locationText + " " + Localization.Get(damageKey);
         }
     }
 }
