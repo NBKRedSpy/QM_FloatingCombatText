@@ -51,8 +51,6 @@ namespace FloatingCombatText
         {
             try
             {
-                //debug
-                throw new Exception("Debugging version 9.0");
                 List<int> version = GetMajorVersions(Application.version);
 
                 return (version[0] == 0 && version[1] == 9 && version[2] == 0);
