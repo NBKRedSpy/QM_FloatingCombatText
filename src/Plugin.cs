@@ -15,6 +15,11 @@ namespace FloatingCombatText
     public static class Plugin
     {
         /// <summary>
+        /// Indicates the game is running version 0.9.1 or higher.
+        /// </summary>
+        public static bool IsVersion91; 
+
+        /// <summary>
         /// Handle weapon damage and life changes differently to show crits
         /// </summary>
         public static bool ProcessingDamage = false;
@@ -27,7 +32,9 @@ namespace FloatingCombatText
         [Hook(ModHookType.AfterConfigsLoaded)]
         public static void AfterConfig(IModContext context)
         {
-            Debug.Log("Updating FloatingCombatText config with missing elements");
+            //Debug.Log("Updating FloatingCombatText config with missing elements");
+
+            IsVersion91 = Application.version.StartsWith("0.9.1.");
 
             Directory.CreateDirectory(ModPersistenceFolder);
 
@@ -160,9 +167,43 @@ namespace FloatingCombatText
             var offsetZ = Plugin.Config.WoundPositionZ;
 
 
-            string woundName = GetWoundText(bodyPartWound);
+            string woundName = Plugin.IsVersion91 ? GetWoundText(bodyPartWound) : GetWoundTextPre90(bodyPartWound);
 
             Plugin.CreateFloatingText(__instance, woundName, Plugin.Config.WoundFontSize, Plugin.Config.WoundDuration, Plugin.Config.WoundFloatSpeed, new Color(0.8f, 0.0f, 0f), new Color(0.3f, 0.0f, 0.0f), offsetX, offsetY, offsetZ);
+        }
+
+        /// <summary>
+        /// The combat text for version 9.0.
+        /// Get the localized text for the wound.
+        /// Adapted from MGSC.TooltipFactory.BuildBodyPartWoundTooltip(MGSC.BodyPartWound, MGSC.EffectsController)
+        /// </summary>
+        /// <param name="bodyPartWound"></param>
+        /// <returns></returns>
+        private static string GetWoundTextPre90(BodyPartWound bodyPartWound)
+        {
+            ItemPropertyType dmgType = ParseHelper.GetDmgType(bodyPartWound.DmgType);
+
+            BodyPartWound item = bodyPartWound;     //Keeping to match the game's code this is from.
+
+            string natureType = Data.WoundSlots.GetRecord(item.WoundSlotId).NatureType;
+
+            string key;
+
+            if (item.IsAmputation)
+            {
+                key = "wound.amputation." + item.SlotPositionType + "." + item.DmgType + "." + natureType + ".name";
+            }
+            else if (item.IsMinor)
+            {
+                key = "wound.minor." + item.DmgType + "." + natureType + ".name";
+            }
+            else
+            {
+                key = "wound." + item.SlotPositionType + "." + item.DmgType + "." + natureType + ".name";
+            }
+
+            return Localization.Get(key);
+
         }
 
         /// <summary>
