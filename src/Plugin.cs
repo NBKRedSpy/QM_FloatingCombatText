@@ -51,13 +51,15 @@ namespace FloatingCombatText
         {
             try
             {
+                //debug
+                throw new Exception("Debugging version 9.0");
                 List<int> version = GetMajorVersions(Application.version);
 
                 return (version[0] == 0 && version[1] == 9 && version[2] == 0);
             }
             catch (Exception ex)
             {
-                Debug.LogError($"Error parsing version '{Application.version}'");
+                Debug.LogError(new ApplicationException($"Error parsing version '{Application.version}'" , ex));
                 //Just assume it is not 9.0
                 return false;
             }
