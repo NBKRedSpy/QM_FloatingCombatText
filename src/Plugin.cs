@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 using HarmonyLib;
@@ -15,9 +16,9 @@ namespace FloatingCombatText
     public static class Plugin
     {
         /// <summary>
-        /// Indicates the game is running version 0.9.1 or higher.
+        /// Indicates that this is the older 9.0 version.
         /// </summary>
-        public static bool IsVersion91; 
+        public static bool IsVersion90; 
 
         /// <summary>
         /// Handle weapon damage and life changes differently to show crits
@@ -32,9 +33,7 @@ namespace FloatingCombatText
         [Hook(ModHookType.AfterConfigsLoaded)]
         public static void AfterConfig(IModContext context)
         {
-            //Debug.Log("Updating FloatingCombatText config with missing elements");
-
-            IsVersion91 = Application.version.StartsWith("0.9.1.");
+            IsVersion90 = AppVersionIs90();
 
             Directory.CreateDirectory(ModPersistenceFolder);
 
@@ -42,6 +41,59 @@ namespace FloatingCombatText
 
             new Harmony("Dekar_" + ModAssemblyName).PatchAll();
         }
+
+
+        /// <summary>
+        /// Returns true if the game is version is 0.9.0.
+        /// </summary>
+        /// <returns></returns>
+        private static bool AppVersionIs90()
+        {
+            try
+            {
+                List<int> version = GetMajorVersions(Application.version);
+
+                return (version[0] == 0 && version[1] == 9 && version[2] == 0);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"Error parsing version '{Application.version}'");
+                //Just assume it is not 9.0
+                return false;
+            }
+
+        }
+
+        /// <summary>
+        /// Returns the Major, minor, micro versions of the game.
+        /// Note that Quasimorph's versions have optional parts and only the Major version and the two right most 
+        /// parts are returned.  The right most being platform build and possibly another build number.
+        /// If there are any missing parts for the first three parts, they will be replaced with a zero.
+        /// Example of valid versions:
+        /// 0.9.1.382s.97e4007  == 0.9.1
+        /// 0.9.375s.aec664d == 0.9.0
+        /// </summary>
+        /// <param name="version"></param>
+        public static List<int> GetMajorVersions(string version)
+        {
+            string[] versionParts = version.Split('.');
+
+            //Get everything but the last two build parts.
+            List<int> numericVersion = versionParts
+                .Where((x, i) => i < versionParts.Length - 2)
+                .Select(x => int.Parse(x))
+                .ToList();
+
+            //Add in any parts that are missing from the first three parts.
+            //Ex 1 = 1.0.0
+            for (int i = numericVersion.Count; i <= 3; i++)
+            {
+                numericVersion.Add(0);
+            }
+
+            return numericVersion;
+        }
+
 
         public static void CreateWeaponDamageFloatingText(Creature creature, DamageHitInfo hitInfo)
         {
@@ -167,7 +219,7 @@ namespace FloatingCombatText
             var offsetZ = Plugin.Config.WoundPositionZ;
 
 
-            string woundName = Plugin.IsVersion91 ? GetWoundText(bodyPartWound) : GetWoundTextPre90(bodyPartWound);
+            string woundName = Plugin.IsVersion90 ? GetWoundText90(bodyPartWound): GetWoundText(bodyPartWound) ;
 
             Plugin.CreateFloatingText(__instance, woundName, Plugin.Config.WoundFontSize, Plugin.Config.WoundDuration, Plugin.Config.WoundFloatSpeed, new Color(0.8f, 0.0f, 0f), new Color(0.3f, 0.0f, 0.0f), offsetX, offsetY, offsetZ);
         }
@@ -179,7 +231,7 @@ namespace FloatingCombatText
         /// </summary>
         /// <param name="bodyPartWound"></param>
         /// <returns></returns>
-        private static string GetWoundTextPre90(BodyPartWound bodyPartWound)
+        private static string GetWoundText90(BodyPartWound bodyPartWound)
         {
             ItemPropertyType dmgType = ParseHelper.GetDmgType(bodyPartWound.DmgType);
 
