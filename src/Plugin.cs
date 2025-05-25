@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using HarmonyLib;
 using MGSC;
 using TMPro;
@@ -16,9 +15,9 @@ namespace FloatingCombatText
     public static class Plugin
     {
         /// <summary>
-        /// Indicates that this is the older 9.0 version.
+        /// Indicates that game is the older 0.9.0 version.
         /// </summary>
-        public static bool IsVersion90; 
+        public static bool IsVersion090;
 
         /// <summary>
         /// Handle weapon damage and life changes differently to show crits
@@ -33,7 +32,7 @@ namespace FloatingCombatText
         [Hook(ModHookType.AfterConfigsLoaded)]
         public static void AfterConfig(IModContext context)
         {
-            IsVersion90 = AppVersionIs90();
+            IsVersion090 = AppVersionIs090();
 
             Directory.CreateDirectory(ModPersistenceFolder);
 
@@ -47,7 +46,7 @@ namespace FloatingCombatText
         /// Returns true if the game is version is 0.9.0.
         /// </summary>
         /// <returns></returns>
-        private static bool AppVersionIs90()
+        private static bool AppVersionIs090()
         {
             try
             {
@@ -58,7 +57,7 @@ namespace FloatingCombatText
             catch (Exception ex)
             {
                 Debug.LogError(new ApplicationException($"Error parsing version '{Application.version}'" , ex));
-                //Just assume it is not 9.0
+                //Just assume it is not 0.9.0
                 return false;
             }
 
@@ -219,22 +218,20 @@ namespace FloatingCombatText
             var offsetZ = Plugin.Config.WoundPositionZ;
 
 
-            string woundName = Plugin.IsVersion90 ? GetWoundText90(bodyPartWound): GetWoundText(bodyPartWound) ;
+            string woundName = Plugin.IsVersion090 ? GetWoundText090(bodyPartWound): GetWoundText(bodyPartWound) ;
 
             Plugin.CreateFloatingText(__instance, woundName, Plugin.Config.WoundFontSize, Plugin.Config.WoundDuration, Plugin.Config.WoundFloatSpeed, new Color(0.8f, 0.0f, 0f), new Color(0.3f, 0.0f, 0.0f), offsetX, offsetY, offsetZ);
         }
 
         /// <summary>
-        /// The combat text for version 9.0.
+        /// The combat text for version 0.9.0.
         /// Get the localized text for the wound.
         /// Adapted from MGSC.TooltipFactory.BuildBodyPartWoundTooltip(MGSC.BodyPartWound, MGSC.EffectsController)
         /// </summary>
         /// <param name="bodyPartWound"></param>
         /// <returns></returns>
-        private static string GetWoundText90(BodyPartWound bodyPartWound)
+        private static string GetWoundText090(BodyPartWound bodyPartWound)
         {
-            ItemPropertyType dmgType = ParseHelper.GetDmgType(bodyPartWound.DmgType);
-
             BodyPartWound item = bodyPartWound;     //Keeping to match the game's code this is from.
 
             string natureType = Data.WoundSlots.GetRecord(item.WoundSlotId).NatureType;

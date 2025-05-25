@@ -4,7 +4,8 @@ using UnityEngine;
 namespace FloatingCombatText
 {
     public class FloatingTextBehaviour : MonoBehaviour
-    { public TextMeshPro TextComponent { get; set; }
+    { 
+        public TextMeshPro TextComponent { get; set; }
         public float RemainingTime { get; set; } = 3;
         public float FloatSpeed { get; set; } = 0.1f;
 
